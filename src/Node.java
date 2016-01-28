@@ -1,5 +1,6 @@
 import javafx.geometry.Point2D;
 import javafx.scene.shape.Polygon;
+import javafx.scene.shape.Shape;
 
 public class Node implements Comparable<Node> {
     private Node previous = null;
@@ -11,7 +12,7 @@ public class Node implements Comparable<Node> {
     public Node(double x, double y) {
         this.x = x;
         this.y = y;
-        this.f = this.g = this.h = Double.MAX_VALUE;
+        this.f = this.h = Double.MAX_VALUE;
     }
 
     public double getDistance(Node node) {

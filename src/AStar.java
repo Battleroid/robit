@@ -8,8 +8,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.stage.Stage;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class AStar extends Application {
     public static void main(String[] args) {
@@ -42,28 +41,74 @@ public class AStar extends Application {
         double w, h;
         List<Line> obstacles = new ArrayList<>();
 
+        private class SortedNodeList {
+            private List<Node> list = new ArrayList<>();
+
+            public SortedNodeList() {
+
+            }
+
+            public SortedNodeList(Node... nodes) {
+                for (Node n : nodes) {
+                    add(n);
+                }
+            }
+
+            public Node getFirst() {
+                return list.get(0);
+            }
+
+            public void clear() {
+                list.clear();
+            }
+
+            public void add(Node node) {
+                list.add(node);
+                Collections.sort(list);
+            }
+
+            public void remove(Node node) {
+                list.remove(node);
+            }
+
+            public int size() {
+                return list.size();
+            }
+
+            public boolean contains(Node node) {
+                return list.contains(node);
+            }
+        }
+
         protected void paint() {
             // set constants
             w = getWidth() / 4f;
             h = getHeight() / 4f;
 
-            // start & end
+            // start & end points
             startX = w - (w / 2f);
             startY = h - (h / 2f);
             endX = w * 3 + (w / 2f);
             endY = h * 3 + (h / 2f);
 
+            // for visualization
             addObstacle();
             addStartEnd();
 
             // find path
             boolean done = false;
-            Point2D start = new Point2D(startX, startY);
-            Point2D end = new Point2D(endX, endY);
-
+            Node start = new Node(startX, startY);
+            Node end = new Node(endX, endY);
+            List<Node> closed = new ArrayList<>();
+            SortedNodeList open = new SortedNodeList();
             while (!done) {
-                // search
+                // for now since I haven't gotten to this yet
+                done = true;
             }
+        }
+
+        private void getNeighbors(Node node) {
+            // do thing
         }
 
         private void addStartEnd() {
