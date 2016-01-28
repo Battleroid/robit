@@ -8,6 +8,9 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AStar extends Application {
     public static void main(String[] args) {
         launch(args);
@@ -37,11 +40,7 @@ public class AStar extends Application {
         double startX, startY;
         double endX, endY;
         double w, h;
-        boolean started = false;
-
-        private double MDist(Point2D a, Point2D b) {
-            return Math.abs(a.getX() - b.getX()) + Math.abs(a.getY() - b.getY());
-        }
+        List<Line> obstacles = new ArrayList<>();
 
         protected void paint() {
             // set constants
@@ -76,6 +75,7 @@ public class AStar extends Application {
         private void addObstacle() {
             Line line = new Line(w * 2, h, w * 2, h * 3);
             line.setStrokeWidth(4);
+            obstacles.add(line);
             getChildren().add(line);
         }
     }
