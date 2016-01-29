@@ -1,11 +1,11 @@
 import javafx.application.Application;
 import javafx.geometry.Point2D;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
+import javafx.scene.shape.*;
 import javafx.stage.Stage;
 
 import java.util.*;
@@ -36,10 +36,27 @@ public class AStar extends Application {
 
     // A* just using a single point and simple 'nodes'
     static class AStarPoint extends Pane {
+        double dotSize = 2.0;
+        double stepSize = 1.0;
         double startX, startY;
         double endX, endY;
         double w, h;
-        List<Line> obstacles = new ArrayList<>();
+        List<Shape> obstacles = new ArrayList<>();
+
+        private enum Direction {
+            LEFT (-1, 0),
+            RIGHT (1, 0),
+            UP (0, -1),
+            DOWN (0, 1);
+
+            private final double dx;
+            private final double dy;
+
+            Direction(double dx, double dy) {
+                this.dx = dx;
+                this.dy = dy;
+            }
+        }
 
         private class SortedNodeList {
             private List<Node> list = new ArrayList<>();
@@ -80,6 +97,26 @@ public class AStar extends Application {
             }
         }
 
+        private boolean checkCollision(Node parent, Direction d) {
+            Point2D pt = parent.toPoint2D();
+            Circle pseudo = new Circle(pt.getX() + d.dx, pt.getY() + d.dy, 2, Color.BLUE);
+            getChildren().add(pseudo);
+            for (Shape enemy : obstacles) {
+                if (enemy != pseudo) {
+                    Shape intersection = Shape.intersect(enemy, pseudo);
+                    if (intersection.getBoundsInLocal().getWidth() != -1) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private LinkedList<Node> getNeighbors(Node parent) {
+            LinkedList<Node> neighbors = new LinkedList<>();
+            return neighbors;
+        }
+
         protected void paint() {
             // set constants
             w = getWidth() / 4f;
@@ -91,37 +128,55 @@ public class AStar extends Application {
             endX = w * 3 + (w / 2f);
             endY = h * 3 + (h / 2f);
 
-            // for visualization
+            // for convenience and visualization
+            // TODO: ask for how many obstacles, randomize the types (say an octagon, convex poly, circle, etc)
             addObstacle();
-            addStartEnd();
 
-            // find path
+            // begin find path
             boolean done = false;
-            Node start = new Node(startX, startY);
+
+            // start, goal nodes
             Node end = new Node(endX, endY);
+            end.setF(end);
+            Node start = new Node(startX, startY, end);
+            Circle startCircle = start.toCircle();
+            Circle endCircle = end.toCircle();
+            endCircle.setFill(Color.DARKGOLDENROD);
+            getChildren().addAll(startCircle, endCircle);
+
+            // lists for searching
             List<Node> closed = new ArrayList<>();
-            SortedNodeList open = new SortedNodeList();
+            SortedNodeList open = new SortedNodeList(start);
+
             while (!done) {
-                // for now since I haven't gotten to this yet
+                Node current = open.getFirst();
+
+                // check if goal node
+                if (current == end) {
+                    done = true;
+                    continue;
+                }
+
+                // move current node to closed list, we've already visited it
+                closed.add(current);
+                open.remove(current);
+
+                for (Node n : getNeighbors(current)) {
+                    // check
+                }
+
+                // TODO: temporary, remove when done
                 done = true;
             }
+
+            // TODO: Create final path here after we've finished searching
         }
 
-        private void getNeighbors(Node node) {
-            // do thing
-        }
-
-        private void addStartEnd() {
-            Circle startDot = new Circle(startX, startY, 2, Color.BLACK);
-            Circle endDot = new Circle(endX, endY, 2, Color.BLACK);
-            getChildren().addAll(startDot, endDot);
-        }
-
+        // TODO: Lines do not play well with intersection, possibly use Paths instead and convert to shapes?
         private void addObstacle() {
-            Line line = new Line(w * 2, h, w * 2, h * 3);
-            line.setStrokeWidth(4);
-            obstacles.add(line);
-            getChildren().add(line);
+            Rectangle rect = new Rectangle(w, h, w * 2, h * 2);
+            obstacles.add(rect);
+            getChildren().add(rect);
         }
     }
 }
