@@ -2,7 +2,8 @@ import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
-import javafx.scene.shape.Shape;
+
+import java.util.Formatter;
 
 public class Node implements Comparable<Node> {
     private static final double defaultSize = 2;
@@ -29,8 +30,17 @@ public class Node implements Comparable<Node> {
         return Math.abs(x - node.x) + Math.abs(y - node.y);
     }
 
+    public double getDistance(double x, double y) {
+        return Math.abs(this.x - x) + Math.abs(this.y - y);
+    }
+
     public double getF() {
         return f;
+    }
+
+    public void setF(double x, double y) {
+        h = getDistance(x ,y);
+        f = g + h;
     }
 
     public void setF(Node node) {
@@ -99,5 +109,20 @@ public class Node implements Comparable<Node> {
         } else {
             return 1;
         }
+    }
+
+    public String toString() {
+        String sf = "Node x: %.2f y: %.2f f: %.2e obstacle?: %b";
+        Formatter formatted = new Formatter();
+        formatted.format(sf, x, y, f, blocking);
+        return formatted.toString();
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
     }
 }

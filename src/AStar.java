@@ -1,6 +1,4 @@
 import javafx.application.Application;
-import javafx.geometry.Point2D;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
@@ -44,10 +42,10 @@ public class AStar extends Application {
         List<Shape> obstacles = new ArrayList<>();
 
         private enum Direction {
-            LEFT (-1, 0),
-            RIGHT (1, 0),
-            UP (0, -1),
-            DOWN (0, 1);
+            LEFT(-1, 0),
+            RIGHT(1, 0),
+            UP(0, -1),
+            DOWN(0, 1);
 
             private final double dx;
             private final double dy;
@@ -97,23 +95,37 @@ public class AStar extends Application {
             }
         }
 
-        private boolean checkCollision(Node parent, Direction d) {
-            Point2D pt = parent.toPoint2D();
-            Circle pseudo = new Circle(pt.getX() + d.dx, pt.getY() + d.dy, 2, Color.BLUE);
-            getChildren().add(pseudo);
+
+        private Node getNeighborNode(Node parent, Direction d) {
+            Node child = new Node(parent.getX() + d.dx, parent.getY() + d.dy);
+            Circle childCircle = child.toCircle();
+            childCircle.setFill(Color.BLUE);
+            getChildren().add(childCircle);
+
+            // key is the obstacles list, not the shit we throw on the stage to check
+            boolean collision = false;
             for (Shape enemy : obstacles) {
-                if (enemy != pseudo) {
-                    Shape intersection = Shape.intersect(enemy, pseudo);
+                if (enemy != childCircle) {
+                    Shape intersection = Shape.intersect(enemy, childCircle);
                     if (intersection.getBoundsInLocal().getWidth() != -1) {
-                        return true;
+                        collision = true;
                     }
                 }
             }
-            return false;
+
+            getChildren().remove(childCircle);
+            child.setObstacle(collision);
+
+            return child;
         }
 
         private LinkedList<Node> getNeighbors(Node parent) {
             LinkedList<Node> neighbors = new LinkedList<>();
+            for (Direction d : Direction.values()) {
+                Node n = getNeighborNode(parent, d);
+                n.setF(endX, endY);
+                neighbors.add(n);
+            }
             return neighbors;
         }
 
