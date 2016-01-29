@@ -106,8 +106,8 @@ public class AStar extends Application {
             boolean collision = false;
             for (Shape enemy : obstacles) {
                 if (enemy != childCircle) {
-                    Shape intersection = Shape.intersect(enemy, childCircle);
-                    if (intersection.getBoundsInLocal().getWidth() != -1) {
+                    Shape intersection = Shape.intersect(enemy, childCircle); // creates intersection shape of the two shapes
+                    if (intersection.getBoundsInLocal().getWidth() != -1) { // if the shape has no width, no intersection!
                         collision = true;
                     }
                 }
@@ -123,7 +123,7 @@ public class AStar extends Application {
             LinkedList<Node> neighbors = new LinkedList<>();
             for (Direction d : Direction.values()) {
                 Node n = getNeighborNode(parent, d);
-                n.setF(endX, endY);
+                n.setF(endX, endY); // TODO: need to pass end node to stay consistent with using nodes, not raw coords
                 neighbors.add(n);
             }
             return neighbors;
