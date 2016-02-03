@@ -186,11 +186,13 @@ public class AStar extends Application {
         public void changeShape(int choice) {
             Shape before = robot.getShape();
             switch (choice) {
-                case 0: robot.setShape(BasicCircle()); robot.resetScale(); robot.setXY(start.getX(), start.getY()); break;
-                case 1: robot.setShape(EquilateralTriangle()); robot.resetScale(); robot.setXY(start.getX(), start.getY()); break;
+                case 0: robot.setShape(BasicCircle()); break;
+                case 1: robot.setShape(EquilateralTriangle()); break;
             }
-            shapeChoice = choice;
             getChildren().remove(before);
+            shapeChoice = choice;
+            robot.setXY(start.getX(), start.getY());
+            robot.setScale(robotSize);
             getChildren().add(robot.getShape());
         }
 
@@ -201,11 +203,8 @@ public class AStar extends Application {
         public void spawnRobot() {
             if (robot == null) {
                 robot = new Robot(start.getX(), start.getY(), BasicCircle());
-            } else {
-                robot.setXY(start.getX(), start.getY());
-                changeShape();
-                robot.resetScale();
             }
+            changeShape();
             robot.setXY(start.getX(), start.getY());
         }
 
@@ -226,7 +225,7 @@ public class AStar extends Application {
             goal = new SNode((int) getWidth() - w, (int) getHeight() - h);
             goal.setColor(Color.DARKGOLDENROD);
 
-           // add to scene
+            // add to scene
             getChildren().addAll(start.getShape(), goal.getShape());
         }
 
