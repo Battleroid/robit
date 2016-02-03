@@ -62,10 +62,10 @@ public class AStar extends Application {
         // buttons
         newSceneBtn.setOnAction(e -> as.newScenario());
         replaySceneBtn.setOnAction(e -> as.replayScenario());
-        incRobotSize.setOnAction(e -> as.incRobotSize(2));
-        decRobotSize.setOnAction(e -> as.decRobotSize(2));
-        incObstacleSize.setOnAction(e -> as.incObstacleSize(2));
-        decObstacleSize.setOnAction(e -> as.decObstacleSize(2));
+        incRobotSize.setOnAction(e -> as.incRobotSize(0.25));
+        decRobotSize.setOnAction(e -> as.decRobotSize(0.25));
+        incObstacleSize.setOnAction(e -> as.incObstacleSize(0.25));
+        decObstacleSize.setOnAction(e -> as.decObstacleSize(0.25));
         rbCircle.setOnAction(e -> as.changeShape(0));
         rbTriangle.setOnAction(e -> as.changeShape(1));
 
@@ -76,7 +76,7 @@ public class AStar extends Application {
         stage.setResizable(false);
         stage.show();
 
-        // sample key usage
+        // sample key usage, remove when done testing
         scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
@@ -95,9 +95,10 @@ public class AStar extends Application {
     static class AStarSimple extends Pane {
         public SNode start;
         public SNode goal;
-        public double robotSize = 10;
-        public double obstacleSize = 10;
+        public double robotSize = 1;
+        public double obstacleSize = 1;
         public Robot robot;
+        public int shapeChoice = 0;
         public List<Shape> obstacles = new ArrayList<>();
 
         // Directions for delta x,y when checking neighbors
@@ -117,23 +118,22 @@ public class AStar extends Application {
         }
 
         public void incRobotSize(double step) {
-            this.robotSize += step > 0 ? step : 1;
+            robotSize += step > 0 ? step : 1;
+            robot.setScale(robotSize);
         }
 
         public void decRobotSize(double step) {
-            this.robotSize -= step > 0 && robotSize > 2 ? step : 0;
+            robotSize -= step > 0 && (robotSize - step) >= 1 ? step : 0;
+            robot.setScale(robotSize);
         }
 
+        // TODO: implement scaling for obstacles
         public void incObstacleSize(double step) {
             this.obstacleSize += step > 0 ? step : 1;
         }
 
         public void decObstacleSize(double step) {
             this.obstacleSize -= step > 0 && obstacleSize > 2 ? step : 0;
-        }
-
-        public void setRobot(Robot robot) {
-            this.robot = robot;
         }
 
         // Equilateral triangle default
@@ -179,24 +179,34 @@ public class AStar extends Application {
             }
         }
 
+        public void changeShape() {
+            changeShape(shapeChoice);
+        }
+
         public void changeShape(int choice) {
             Shape before = robot.getShape();
             switch (choice) {
-                case 0: robot.setShape(BasicCircle()); robot.resetScale(); robot.setXY(0, 0); break;
-                case 1: robot.setShape(EquilateralTriangle()); robot.resetScale(); robot.setXY(0, 0); break;
+                case 0: robot.setShape(BasicCircle()); robot.resetScale(); robot.setXY(start.getX(), start.getY()); break;
+                case 1: robot.setShape(EquilateralTriangle()); robot.resetScale(); robot.setXY(start.getX(), start.getY()); break;
             }
+            shapeChoice = choice;
             getChildren().remove(before);
             getChildren().add(robot.getShape());
         }
 
         public AStarSimple() {
-            // create robot
-            Robot robot = new Robot(0, 0, BasicCircle());
-            setRobot(robot);
+            newScenario();
+        }
 
-            // create end node
-
-            getChildren().addAll(robot.getShape());
+        public void spawnRobot() {
+            if (robot == null) {
+                robot = new Robot(start.getX(), start.getY(), BasicCircle());
+            } else {
+                robot.setXY(start.getX(), start.getY());
+                changeShape();
+                robot.resetScale();
+            }
+            robot.setXY(start.getX(), start.getY());
         }
 
         public void spawnObstacles(int n) {
@@ -206,15 +216,7 @@ public class AStar extends Application {
             }
         }
 
-        public void createSGSNodes() {
-            // remove old shapes (if they even exist)
-            try {
-                if (getChildren().contains(start.getShape()) || getChildren().contains(goal.getShape()))
-                    getChildren().removeAll(start.getShape(), goal.getShape());
-            } catch (NullPointerException ex) {
-                System.out.println("Start/Goal nodes do not exist, ignoring");
-            }
-
+        public void spawnSGSNodes() {
             // constants in integers for nice neat movement
             int w = (int) (getWidth() / 8);
             int h = (int) (getHeight() / 4);
@@ -222,20 +224,25 @@ public class AStar extends Application {
             // start in TL, goal in BR
             start = new SNode(w, h);
             goal = new SNode((int) getWidth() - w, (int) getHeight() - h);
+            goal.setColor(Color.DARKGOLDENROD);
 
            // add to scene
             getChildren().addAll(start.getShape(), goal.getShape());
         }
 
         public void newScenario() {
-            // TODO: Generate random set of shapes for the scene
-            createSGSNodes();
+            // clear all children
+            getChildren().clear();
+
+            // spawn all required entities for a new scenario
+            spawnSGSNodes();
             spawnObstacles(3);
+            spawnRobot();
         }
 
         // should restart the same scenario, used to solve again (e.g. replay), or to solve when swapping shapes
         public void replayScenario() {
-            // TODO: Replay solve for scenario. Restart solve altogether since this will be for when you change the robot
+            // TODO: Replay solve for scenario. Restart solve altogether since this will be for when you change the robot shape
         }
 
         public void solve() {
