@@ -155,11 +155,12 @@ public class AStar extends Application {
             return triangle;
         }
 
+        // Basic circle default
         public Shape BasicCircle() {
             return BasicCircle(10);
         }
 
-        // Basic Circle
+        // Basic circle
         public Shape BasicCircle(double radius) {
             if (radius <= 10) radius = 10;
             double x = radius;
@@ -195,6 +196,7 @@ public class AStar extends Application {
             getChildren().add(robot.getShape());
         }
 
+        // constructors and steps for creating pane
         public AStarSimple() {
             newScenario();
         }
@@ -229,7 +231,7 @@ public class AStar extends Application {
         }
 
         public void newScenario() {
-            // clear all children
+            // clear all shapes on the scene
             getChildren().clear();
 
             // spawn all required entities for a new scenario
@@ -239,6 +241,7 @@ public class AStar extends Application {
         }
 
         // should restart the same scenario, used to solve again (e.g. replay), or to solve when swapping shapes
+        // TODO: Replay the scenario with updated (or not) parameters
         public void replayScenario() {
             // TODO: Replay solve for scenario. Restart solve altogether since this will be for when you change the robot shape
         }
