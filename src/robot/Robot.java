@@ -5,16 +5,16 @@ import javafx.scene.shape.Shape;
 
 public class Robot {
     private double x, y;
-    private Polygon polygon;
+    private Shape shape;
 
-    public Robot(Polygon polygon) {
-        this.polygon = polygon;
+    public Robot(Polygon shape) {
+        this.shape = shape;
     }
 
-    public Robot(double x, double y, Polygon polygon) {
+    public Robot(double x, double y, Shape shape) {
         this.x = x;
         this.y = y;
-        this.polygon = polygon;
+        this.shape = shape;
     }
 
     public double getX() {
@@ -27,35 +27,39 @@ public class Robot {
 
     public void moveX(double dx) {
         this.x += dx;
-        polygon.setTranslateX(x);
+        shape.setTranslateX(x);
     }
 
     public void moveY(double dy) {
         this.y += dy;
-        polygon.setTranslateY(y);
+        shape.setTranslateY(y);
     }
 
     public void setXY(double x, double y) {
         this.x = x;
         this.y = y;
-        polygon.setTranslateX(x);
-        polygon.setTranslateY(y);
+        shape.setTranslateX(x);
+        shape.setTranslateY(y);
     }
 
     public void setScale(double size) {
         if (size >= 1) {
-            polygon.setScaleX(size);
-            polygon.setScaleY(size);
+            shape.setScaleX(size);
+            shape.setScaleY(size);
         }
     }
 
     public void resetScale() {
-        polygon.setScaleX(1);
-        polygon.setScaleY(1);
+        shape.setScaleX(1);
+        shape.setScaleY(1);
+    }
+
+    public Shape getShape() {
+        return shape;
     }
 
     public boolean hit(Shape shape) {
-        Shape xs = Shape.intersect(polygon, shape);
+        Shape xs = Shape.intersect(this.shape, shape);
         if (xs.getBoundsInLocal().getWidth() != -1)
             return true; // width is > 0, therefore an intersection has occurred
         else

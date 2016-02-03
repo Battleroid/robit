@@ -1,8 +1,10 @@
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -11,6 +13,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
+import robot.Robot;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -47,7 +50,6 @@ public class AStar extends Application {
 
         // a star
         AStarSimple as = new AStarSimple();
-        as.setRobot(new Polygon(0, 0, 10, 0, 10, 10, 0, 10));
         borderPane.setCenter(as);
 
         // buttons
@@ -64,15 +66,30 @@ public class AStar extends Application {
         stage.setScene(scene);
         stage.setResizable(false);
         stage.show();
+
+        // sample key usage
+        scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                switch (event.getCode()) {
+                    case A: as.robot.moveX(-1); break;
+                    case D: as.robot.moveX(1); break;
+                    case W: as.robot.moveY(-1); break;
+                    case S: as.robot.moveY(1); break;
+                    case Q: as.robot.setScale(3); break;
+                    case E: as.robot.resetScale(); break;
+                }
+            }
+        });
     }
 
     static class AStarSimple extends Pane {
-        SNode start;
-        SNode goal;
-        double robotSize = 10;
-        double obstacleSize = 10;
-        Shape robot;
-        List<Shape> obstacles = new ArrayList<>();
+        public SNode start;
+        public SNode goal;
+        public double robotSize = 10;
+        public double obstacleSize = 10;
+        public Robot robot;
+        public List<Shape> obstacles = new ArrayList<>();
 
         private enum Direction {
             LEFT(-1, 0),
@@ -105,6 +122,46 @@ public class AStar extends Application {
             this.obstacleSize -= step > 0 && obstacleSize > 2 ? step : 0;
         }
 
+        public void setRobot(Robot robot) {
+            this.robot = robot;
+        }
+
+        // Equilateral triangle default
+        public Shape EquilateralTriangle() {
+            return EquilateralTriangle(10);
+        }
+
+        // Equilateral triangle
+        public Shape EquilateralTriangle(double scale) {
+            if (scale <= 10) scale = 10;
+            double[] points = {
+                    0.5 * scale, 0,
+                    0, 0.866 * scale,
+                    scale, 0.866 * scale
+            };
+            Shape triangle = new Polygon(points);
+            triangle.setStroke(Color.BLACK);
+            triangle.setStrokeWidth(1);
+            triangle.setFill(Color.AQUA);
+            return triangle;
+        }
+
+        public Shape BasicCircle() {
+            return BasicCircle(10);
+        }
+
+        // Basic Circle
+        public Shape BasicCircle(double radius) {
+            if (radius <= 10) radius = 10;
+            double x = radius;
+            double y = radius;
+            Circle circle = new Circle(radius, x, y);
+            circle.setStroke(Color.BLACK);
+            circle.setStrokeWidth(1);
+            circle.setFill(Color.AQUA);
+            return circle;
+        }
+
         public class SNodeComparator implements Comparator<SNode> {
             @Override
             public int compare(SNode a, SNode b) {
@@ -112,8 +169,11 @@ public class AStar extends Application {
             }
         }
 
-        public void setRobot(Shape shape) {
-            this.robot = shape;
+        public AStarSimple() {
+            Robot robot = new Robot(0, 0, BasicCircle());
+            setRobot(robot);
+
+            getChildren().addAll(robot.getShape());
         }
 
         public void newScenario() {
@@ -122,6 +182,7 @@ public class AStar extends Application {
             // 2. establish start/goal points on left and right side
             // 3. immediately try to solve
             // for when you know, it works
+            System.out.println(robot.getX() + ", " + robot.getY());
         }
 
         public void replayScenario() {
