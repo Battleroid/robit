@@ -2,8 +2,7 @@ import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -42,10 +41,19 @@ public class AStar extends Application {
         Label obstacleSizeLbl = new Label("Obstacle size:");
         Button incObstacleSize = new Button("+");
         Button decObstacleSize = new Button("-");
+        final ToggleGroup shapeGroup = new ToggleGroup();
+        Label robotShapeLbl = new Label("Robot Shape:");
+        RadioButton rbCircle = new RadioButton("Circle");
+        RadioButton rbTriangle = new RadioButton("Triangle");
+        rbCircle.setToggleGroup(shapeGroup);
+        rbTriangle.setToggleGroup(shapeGroup);
+        rbCircle.setSelected(true);
 
         // add
         hbox.getChildren().addAll(newSceneBtn, replaySceneBtn, robotSizeLbl,
-                incRobotSize, decRobotSize, obstacleSizeLbl, incObstacleSize, decObstacleSize);
+                incRobotSize, decRobotSize, obstacleSizeLbl, incObstacleSize, decObstacleSize,
+                robotShapeLbl, rbCircle, rbTriangle
+        );
 
         // a star
         AStarSimple as = new AStarSimple();
@@ -58,6 +66,8 @@ public class AStar extends Application {
         decRobotSize.setOnAction(e -> as.decRobotSize(2));
         incObstacleSize.setOnAction(e -> as.incObstacleSize(2));
         decObstacleSize.setOnAction(e -> as.decObstacleSize(2));
+        rbCircle.setOnAction(e -> as.changeShape(0));
+        rbTriangle.setOnAction(e -> as.changeShape(1));
 
         // scene & stage
         final Scene scene = new Scene(borderPane, 720, 480);
@@ -128,7 +138,7 @@ public class AStar extends Application {
 
         // Equilateral triangle default
         public Shape EquilateralTriangle() {
-            return EquilateralTriangle(10);
+            return EquilateralTriangle(20);
         }
 
         // Equilateral triangle
@@ -169,23 +179,64 @@ public class AStar extends Application {
             }
         }
 
+        public void changeShape(int choice) {
+            Shape before = robot.getShape();
+            switch (choice) {
+                case 0: robot.setShape(BasicCircle()); robot.resetScale(); robot.setXY(0, 0); break;
+                case 1: robot.setShape(EquilateralTriangle()); robot.resetScale(); robot.setXY(0, 0); break;
+            }
+            getChildren().remove(before);
+            getChildren().add(robot.getShape());
+        }
+
         public AStarSimple() {
-            // TODO: Need little dropdown box to select shape for robot, which renews the scenario
+            // create robot
             Robot robot = new Robot(0, 0, BasicCircle());
             setRobot(robot);
+
+            // create end node
 
             getChildren().addAll(robot.getShape());
         }
 
+        public void spawnObstacles(int n) {
+            this.obstacles.clear();
+            for (int i = 0; i < n; ++i) {
+                // TODO: create and randomly place obstacle within middle 60% of pane
+            }
+        }
+
+        public void createSGSNodes() {
+            // remove old shapes (if they even exist)
+            try {
+                if (getChildren().contains(start.getShape()) || getChildren().contains(goal.getShape()))
+                    getChildren().removeAll(start.getShape(), goal.getShape());
+            } catch (NullPointerException ex) {
+                System.out.println("Start/Goal nodes do not exist, ignoring");
+            }
+
+            // constants in integers for nice neat movement
+            int w = (int) (getWidth() / 8);
+            int h = (int) (getHeight() / 4);
+
+            // start in TL, goal in BR
+            start = new SNode(w, h);
+            goal = new SNode((int) getWidth() - w, (int) getHeight() - h);
+
+           // add to scene
+            getChildren().addAll(start.getShape(), goal.getShape());
+        }
+
         public void newScenario() {
             // TODO: Generate random set of shapes for the scene
+            createSGSNodes();
+            spawnObstacles(3);
         }
 
+        // should restart the same scenario, used to solve again (e.g. replay), or to solve when swapping shapes
         public void replayScenario() {
-            // TODO: Replay solve for scenario. Just move the shape along the path.
+            // TODO: Replay solve for scenario. Restart solve altogether since this will be for when you change the robot
         }
-
-        protected void paint() {}
 
         public void solve() {
             // TODO: Should solve do this in an animation?

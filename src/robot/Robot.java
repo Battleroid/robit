@@ -17,6 +17,11 @@ public class Robot {
         this.shape = shape;
     }
 
+    public void setShape(Shape shape) {
+        this.shape = shape;
+        resetScale();
+    }
+
     public double getX() {
         return this.x;
     }

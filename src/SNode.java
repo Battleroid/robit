@@ -10,6 +10,7 @@ public class SNode {
     private static final double g = 10.0;
     private SNode parent = null;
     private boolean obstacle = false;
+    private Color color = Color.BLUE;
 
     public SNode(double x, double y) {
         this.x = x;
@@ -73,6 +74,10 @@ public class SNode {
         return g;
     }
 
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
     public void setObstacle(boolean obstacle) {
         this.obstacle = obstacle;
     }
@@ -82,11 +87,11 @@ public class SNode {
     }
 
     public Circle getShape() {
-        return new Circle(x, y, defaultSize, Color.BLUE);
+        return new Circle(x, y, defaultSize, color);
     }
 
     public Circle getShape(double size) {
-        return new Circle(x, y, size, Color.BLUE);
+        return new Circle(x, y, size, color);
     }
 
     public boolean containedBy(Shape p) {
