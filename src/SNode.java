@@ -1,7 +1,7 @@
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Polygon;
+import javafx.scene.shape.Shape;
 
 public class SNode {
     private static final double defaultSize = 2.0;
@@ -89,7 +89,7 @@ public class SNode {
         return new Circle(x, y, size, Color.BLUE);
     }
 
-    public boolean containedBy(Polygon p) {
+    public boolean containedBy(Shape p) {
         return p.contains(getPoint2D());
     }
 
