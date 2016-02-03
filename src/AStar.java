@@ -26,7 +26,6 @@ public class AStar extends Application {
 
     @Override
     public void start(Stage stage) {
-
         // layouts
         BorderPane borderPane = new BorderPane();
         HBox hbox = new HBox(10);
@@ -91,6 +90,7 @@ public class AStar extends Application {
         public Robot robot;
         public List<Shape> obstacles = new ArrayList<>();
 
+        // Directions for delta x,y when checking neighbors
         private enum Direction {
             LEFT(-1, 0),
             RIGHT(1, 0),
@@ -170,6 +170,7 @@ public class AStar extends Application {
         }
 
         public AStarSimple() {
+            // TODO: Need little dropdown box to select shape for robot, which renews the scenario
             Robot robot = new Robot(0, 0, BasicCircle());
             setRobot(robot);
 
@@ -177,24 +178,17 @@ public class AStar extends Application {
         }
 
         public void newScenario() {
-            // draw new scenario:
-            // 1. randomize location of obstacles within middle of the pane
-            // 2. establish start/goal points on left and right side
-            // 3. immediately try to solve
-            // for when you know, it works
-            System.out.println(robot.getX() + ", " + robot.getY());
+            // TODO: Generate random set of shapes for the scene
         }
 
         public void replayScenario() {
-            // for when I get animation working
+            // TODO: Replay solve for scenario. Just move the shape along the path.
         }
 
-        protected void paint() {
-            // ?
-        }
+        protected void paint() {}
 
         public void solve() {
-            // do pathfinding
+            // TODO: Should solve do this in an animation?
         }
     }
 }
