@@ -1,5 +1,3 @@
-package robot;
-
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Shape;
 

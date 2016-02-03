@@ -12,7 +12,6 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
-import robot.Robot;
 
 import java.util.ArrayList;
 import java.util.Comparator;
