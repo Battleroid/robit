@@ -1,6 +1,9 @@
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Shape;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Robot {
     private double x, y;
     private Shape shape;
@@ -61,7 +64,7 @@ public class Robot {
         return shape;
     }
 
-    public boolean collides(AStar.AStarSimple.Direction direction, Shape... shapes) {
+    public boolean collides(AStar.AStarSimple.Direction direction, List<Polygon> polygons) {
         // get before coordinates
         double bx = x;
         double by = y;
@@ -72,8 +75,8 @@ public class Robot {
 
         // check shapes for intersection
         boolean collision = false;
-        for (Shape s : shapes) {
-            if (hit(s)) {
+        for (Polygon p : polygons) {
+            if (hit(p)) {
                 collision = true;
                 break;
             }

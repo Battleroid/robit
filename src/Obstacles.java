@@ -45,4 +45,31 @@ public class Obstacles {
             this.setTranslateY(y);
         }
     }
+
+    static class Octagon extends Polygon {
+        public Octagon(double x, double y, double scale) {
+            getPoints().addAll(
+                    2.5d, -7d,
+                    7d, -2.5d,
+                    7d, 2.5d,
+                    2.5, 7d,
+                    -2.5d, 7d,
+                    -7d, 2.5d,
+                    -7d, -2.5d,
+                    -2.5d, -7d
+            );
+            for (int i = 0; i < getPoints().size(); i++) {
+                getPoints().set(i, getPoints().get(i) * scale);
+            }
+
+            // stroke & fill
+            setStrokeWidth(1);
+            setStroke(Color.BLACK);
+            setFill(Color.LIGHTGRAY);
+
+            // set translated location based on x,y coordinates
+            this.setTranslateX(x);
+            this.setTranslateY(y);
+        }
+    }
 }

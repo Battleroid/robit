@@ -13,9 +13,7 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class AStar extends Application {
     public static void main(String[] args) {
@@ -29,7 +27,7 @@ public class AStar extends Application {
         HBox hbox = new HBox(10);
         hbox.setPadding(new Insets(10));
         hbox.setStyle("-fx-background-color: #ddd;");
-        borderPane.setBottom(hbox);
+        borderPane.setTop(hbox);
 
         // controls
         Button newSceneBtn = new Button("New Scenario");
@@ -86,6 +84,7 @@ public class AStar extends Application {
                     case S: as.robot.moveY(1); break;
                     case Q: as.robot.setScale(3); break;
                     case E: as.robot.resetScale(); break;
+                    case F: as.collisionCheck(); break;
                 }
             }
         });
@@ -98,7 +97,7 @@ public class AStar extends Application {
         public double obstacleSize = 1;
         public Robot robot;
         public int shapeChoice = 0;
-        public List<Shape> obstacles = new ArrayList<>();
+        public List<Polygon> obstacles = new ArrayList<>();
 
         // Directions for delta x,y when checking neighbors
         public enum Direction {
@@ -197,8 +196,10 @@ public class AStar extends Application {
         }
 
         // constructors and steps for creating pane
-        public AStarSimple() {
-            newScenario();
+        public AStarSimple() {}
+
+        public void collisionCheck() {
+            System.out.println(robot.collides(Direction.RIGHT, obstacles));
         }
 
         public void spawnRobot() {
@@ -211,10 +212,29 @@ public class AStar extends Application {
 
         public void spawnObstacles(int n) {
             this.obstacles.clear();
-            obstacles.add(new Obstacles.Pentagon(200, 200, 5));
-            obstacles.add(new Obstacles.Rectangle(400, 200, 5));
+            // Class[] polygonPool = Obstacles.class.getClass().getClasses();
+
+            // constants for threshold
+            double w = (int) getWidth() / 8;
+            double h = (int) getHeight() / 4;
+            double xl = w * 2d;
+            double xr = (int) getWidth() - (w * 2d);
+            double yt = h - (h / 2d);
+            double yb = (int) getWidth() - (h * 2d);
+            Random rng = new Random();
             for (int i = 0; i < n; ++i) {
-                // TODO: create and randomly place obstacle within middle 60% of pane
+                double orgx = (int) (rng.nextDouble() * getWidth());
+                double orgy = (int) (rng.nextDouble() * getHeight());
+                double scale = 5 + rng.nextInt(5);
+                while (orgx < xl || orgx > xr || orgy < yt || orgy > yb) {
+                    orgx = (int) (rng.nextDouble() * getWidth());
+                    orgy = (int) (rng.nextDouble() * getHeight());
+                }
+
+                obstacles.add(new Obstacles.Octagon(orgx, orgy, scale));
+
+                // spawn random obstacle
+                // Class polygonClass = polygonPool[rng.nextInt(polygonPool.length)].getClass();
             }
             getChildren().addAll(obstacles);
         }
