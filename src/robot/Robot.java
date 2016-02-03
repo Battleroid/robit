@@ -5,7 +5,7 @@ import javafx.scene.shape.Shape;
 
 public class Robot {
     private double x, y;
-    private final Polygon polygon;
+    private Polygon polygon;
 
     public Robot(Polygon polygon) {
         this.polygon = polygon;
