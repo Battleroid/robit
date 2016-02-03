@@ -101,14 +101,14 @@ public class AStar extends Application {
         public List<Shape> obstacles = new ArrayList<>();
 
         // Directions for delta x,y when checking neighbors
-        private enum Direction {
+        public enum Direction {
             LEFT(-1, 0),
             RIGHT(1, 0),
             UP(0, -1),
             DOWN(0, 1);
 
-            private final double dx;
-            private final double dy;
+            public final double dx;
+            public final double dy;
 
             Direction(double dx, double dy) {
                 this.dx = dx;
@@ -211,9 +211,12 @@ public class AStar extends Application {
 
         public void spawnObstacles(int n) {
             this.obstacles.clear();
+            obstacles.add(new Obstacles.Pentagon(200, 200, 5));
+            obstacles.add(new Obstacles.Rectangle(400, 200, 5));
             for (int i = 0; i < n; ++i) {
                 // TODO: create and randomly place obstacle within middle 60% of pane
             }
+            getChildren().addAll(obstacles);
         }
 
         public void spawnSGSNodes() {

@@ -61,6 +61,30 @@ public class Robot {
         return shape;
     }
 
+    public boolean collides(AStar.AStarSimple.Direction direction, Shape... shapes) {
+        // get before coordinates
+        double bx = x;
+        double by = y;
+
+        // do temporary move in direction
+        moveX(direction.dx);
+        moveY(direction.dy);
+
+        // check shapes for intersection
+        boolean collision = false;
+        for (Shape s : shapes) {
+            if (hit(s)) {
+                collision = true;
+                break;
+            }
+        }
+
+        // move back
+        setXY(bx, by);
+
+        return collision;
+    }
+
     public boolean hit(Shape shape) {
         Shape xs = Shape.intersect(this.shape, shape);
         if (xs.getBoundsInLocal().getWidth() != -1)
