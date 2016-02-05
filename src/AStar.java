@@ -13,6 +13,7 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class AStar extends Application {
@@ -22,8 +23,13 @@ public class AStar extends Application {
 
     @Override
     public void start(Stage stage) {
+        int maxW = 720;
+        int maxH = 480;
+
         // layouts
         BorderPane borderPane = new BorderPane();
+        borderPane.setMaxHeight(maxH);
+        borderPane.setMaxWidth(maxW);
         HBox hbox = new HBox(10);
         hbox.setPadding(new Insets(10));
         hbox.setStyle("-fx-background-color: #ddd;");
@@ -67,7 +73,7 @@ public class AStar extends Application {
         rbTriangle.setOnAction(e -> as.changeShape(1));
 
         // scene & stage
-        final Scene scene = new Scene(borderPane, 720, 480);
+        final Scene scene = new Scene(borderPane, maxW, maxH);
         stage.setTitle("A* Pathfinding");
         stage.setScene(scene);
         stage.setResizable(false);
@@ -97,7 +103,7 @@ public class AStar extends Application {
         public double obstacleSize = 1;
         public Robot robot;
         public int shapeChoice = 0;
-        public List<Polygon> obstacles = new ArrayList<>();
+        public ArrayList<Polygon> obstacles = new ArrayList<>();
 
         // Directions for delta x,y when checking neighbors
         public enum Direction {
@@ -131,9 +137,10 @@ public class AStar extends Application {
         }
 
         public void decObstacleSize(double step) {
-            this.obstacleSize -= step > 0 && obstacleSize > 2 ? step : 0;
+            this.obstacleSize -= step > 0 && obstacleSize > 10 ? step : 0;
         }
 
+        // TODO: transition shape definitions to Robot class
         // Equilateral triangle default
         public Shape EquilateralTriangle() {
             return EquilateralTriangle(20);
@@ -211,45 +218,38 @@ public class AStar extends Application {
         }
 
         public void spawnObstacles(int n) {
-            this.obstacles.clear();
-            // Class[] polygonPool = Obstacles.class.getClass().getClasses();
+            obstacles.clear();
 
             // constants for threshold
-            double w = (int) getWidth() / 8;
-            double h = (int) getHeight() / 4;
-            double xl = w * 2d;
-            double xr = (int) getWidth() - (w * 2d);
-            double yt = h - (h / 2d);
-            double yb = (int) getWidth() - (h * 2d);
+            int cx = (int) getWidth() / 2;
+            int cy = (int) getHeight() / 2;
             Random rng = new Random();
             for (int i = 0; i < n; ++i) {
-                double orgx = (int) (rng.nextDouble() * getWidth());
-                double orgy = (int) (rng.nextDouble() * getHeight());
-                double scale = 5 + rng.nextInt(5);
-                while (orgx < xl || orgx > xr || orgy < yt || orgy > yb) {
-                    orgx = (int) (rng.nextDouble() * getWidth());
-                    orgy = (int) (rng.nextDouble() * getHeight());
-                }
-
-                obstacles.add(new Obstacles.Octagon(orgx, orgy, scale));
-
-                // spawn random obstacle
-                // Class polygonClass = polygonPool[rng.nextInt(polygonPool.length)].getClass();
+                int cxl = cx / 2; // left
+                int cxr = cx + cxl; // right
+                int cyt = cy / 2; // top
+                int cyb = cy + cyt; // bottom
+                int x = cxl + rng.nextInt((cxr - cxl) - 1);
+                int y = cyt + rng.nextInt((cyb - cyt) - 1);
+                int scale = 5 + rng.nextInt(7);
+                Polygon o = new Obstacles.Octagon(x, y, scale);
+                obstacles.add(o);
             }
+
             getChildren().addAll(obstacles);
         }
 
         public void spawnSGSNodes() {
             // constants in integers for nice neat movement
-            int w = (int) (getWidth() / 8);
-            int h = (int) (getHeight() / 4);
+            int w = (int) (getWidth() / 10);
+            int h = (int) (getHeight() / 8);
 
             // start in TL, goal in BR
             start = new SNode(w, h);
             goal = new SNode((int) getWidth() - w, (int) getHeight() - h);
             goal.setColor(Color.DARKGOLDENROD);
 
-            // add to scene
+            // add node shapes to scene for visualization
             getChildren().addAll(start.getShape(), goal.getShape());
         }
 
@@ -270,7 +270,9 @@ public class AStar extends Application {
         }
 
         public void solve() {
-            // TODO: Should solve do this in an animation?
+            // our open & closed lists
+            PriorityQueue<SNode> open = new PriorityQueue<>();
+            HashSet<SNode> closed = new HashSet<>();
         }
     }
 }

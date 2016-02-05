@@ -64,7 +64,7 @@ public class Robot {
         return shape;
     }
 
-    public boolean collides(AStar.AStarSimple.Direction direction, List<Polygon> polygons) {
+    public boolean collides(AStar.AStarSimple.Direction direction, ArrayList<Polygon> polygons) {
         // get before coordinates
         double bx = x;
         double by = y;

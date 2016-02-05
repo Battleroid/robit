@@ -1,9 +1,7 @@
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 
-/**
- * Created by casey on 2/3/16.
- */
+// TODO: Move obstacles to abstract class to take advantage of scaling vars and whatnot?
 public class Obstacles {
     static class Rectangle extends Polygon {
         public Rectangle(double x, double y, double scale) {
