@@ -121,6 +121,7 @@ public class AStar extends Application {
             }
         }
 
+        // TODO: When changing size check if you collide, if you do DO NOT increment
         public void incRobotSize(double step) {
             robotSize += step > 0 ? step : 1;
             robot.setScale(robotSize);
@@ -241,8 +242,8 @@ public class AStar extends Application {
 
         public void spawnSGSNodes() {
             // constants in integers for nice neat movement
-            int w = (int) (getWidth() / 10);
-            int h = (int) (getHeight() / 8);
+            int w = (int) (getWidth() / 12);
+            int h = (int) (getHeight() / 10);
 
             // start in TL, goal in BR
             start = new SNode(w, h);

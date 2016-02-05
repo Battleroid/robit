@@ -4,10 +4,11 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
 
 public class SNode {
+    private static final double defaultCost = 10.0;
     private static final double defaultSize = 2.0;
     private final double x, y;
     private double f, h;
-    private static final double g = 10.0;
+    private double g = defaultCost;
     private SNode parent = null;
     private boolean obstacle = false;
     private Color color = Color.BLUE;
@@ -48,6 +49,18 @@ public class SNode {
         return Math.abs(this.x - x)  + Math.abs(this.y - y);
     }
 
+    /**
+     * Sets parent to previous node, calculates heuristic based on goal node. Adds default cost to previous node cost.
+     * @param previous node
+     * @param goal node
+     */
+    public void setF(SNode previous, SNode goal) {
+        this.parent = previous;
+        h = distanceTo(goal);
+        g = previous.getG() + defaultCost;
+        f = g + h;
+    }
+
     public void setF(SNode goal) {
         h = distanceTo(goal.getX(), goal.getY());
         f = g + h;
@@ -68,6 +81,10 @@ public class SNode {
 
     public double getH() {
         return h;
+    }
+
+    public void setG(double g) {
+        this.g = g;
     }
 
     public double getG() {
@@ -104,5 +121,14 @@ public class SNode {
 
     public void setParent(SNode parent) {
         this.parent = parent;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) return false;
+        if (getClass() != o.getClass()) return false;
+        final SNode n = (SNode) o;
+        return getX() == n.getX() && getY() == n.getY();
+        // return (getX() == n.getX()) && (getY() == n.getY());
     }
 }

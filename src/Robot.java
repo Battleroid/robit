@@ -1,8 +1,8 @@
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Shape;
+import javafx.scene.transform.Scale;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class Robot {
     private double x, y;
@@ -16,6 +16,7 @@ public class Robot {
         this.x = x;
         this.y = y;
         this.shape = shape;
+        resetScale();
     }
 
     public void setShape(Shape shape) {
@@ -48,16 +49,18 @@ public class Robot {
         shape.setTranslateY(y);
     }
 
+    // TODO: transforms need to be on origin (center), or in case of triangle possibly corner
     public void setScale(double size) {
         if (size >= 1) {
-            shape.setScaleX(size);
-            shape.setScaleY(size);
+            Scale scale = new Scale(size, size);
+            shape.getTransforms().clear();
+            shape.getTransforms().add(scale);
+            // TODO: need to adjust for origin EVENTUALLY using middle point of bounding box
         }
     }
 
     public void resetScale() {
-        shape.setScaleX(1);
-        shape.setScaleY(1);
+        shape.getTransforms().clear();
     }
 
     public Shape getShape() {
