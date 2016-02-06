@@ -3,42 +3,58 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
 
-public class SNode {
-    private static final double defaultCost = 10.0;
-    private static final double defaultSize = 2.0;
-    private final double x, y;
+public class SNode implements Comparable<SNode> {
+    public static final double defaultCost = 10.0;
+    public static final double defaultSize = 2.0;
+    private final int x, y;
     private double f, h;
     private double g = defaultCost;
     private SNode parent = null;
     private boolean obstacle = false;
     private Color color = Color.BLUE;
+    private Point2D pt;
 
-    public SNode(double x, double y) {
+    public SNode(int x, int y) {
         this.x = x;
         this.y = y;
+        this.pt = new Point2D(x, y);
+        this.f = this.g = this.h = Double.MAX_VALUE;
     }
 
     public SNode(Point2D pt) {
-        this.x = pt.getX();
-        this.y = pt.getY();
+        this.x = (int) pt.getX();
+        this.y = (int) pt.getY();
+        this.pt = new Point2D(x, y);
     }
 
-    public SNode(double x, double y, SNode goal) {
+    public SNode(int x, int y, SNode goal) {
         this.x = x;
         this.y = y;
+        this.pt = new Point2D(x, y);
         setF(goal);
     }
 
-    public double getX() {
+    public int getX() {
         return x;
     }
 
-    public double getY() {
+    public int getY() {
         return y;
     }
 
     public Point2D getPoint2D() {
-        return new Point2D(x, y);
+        // return new Point2D(x, y);
+        return pt;
+    }
+
+    static public double distanceTo(SNode f, SNode t) {
+        return Math.abs(f.getX() - t.getX()) + Math.abs(f.getY() - t.getY());
+    }
+
+    static public double distanceToAlt(SNode f, SNode t) {
+        double x = f.getX() - t.getX();
+        double y = f.getY() - t.getY();
+        return x * x + y * y;
     }
 
     public double distanceTo(SNode snode) {
@@ -69,6 +85,10 @@ public class SNode {
     public void setF(double x, double y) {
         h = distanceTo(x, y);
         f = g + h;
+    }
+
+    public void setF(double f) {
+        this.f = f;
     }
 
     public double getF() {
@@ -123,12 +143,35 @@ public class SNode {
         this.parent = parent;
     }
 
+    public boolean sameAs(SNode s) {
+        return getX() == s.getX() && getY() == s.getY();
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (o == null) return false;
-        if (getClass() != o.getClass()) return false;
-        final SNode n = (SNode) o;
-        return getX() == n.getX() && getY() == n.getY();
-        // return (getX() == n.getX()) && (getY() == n.getY());
+        if (this == o) return true;
+        if (!(o instanceof SNode)) return false;
+        SNode s = (SNode) o;
+        return (this.x == s.x) && (this.y == s.y);
+    }
+
+    @Override
+    public String toString() {
+        return new String("SN " + getX() + ":" + getY());
+    }
+
+    public void setH(double h) {
+        this.h = h;
+    }
+
+    @Override
+    public int compareTo(SNode o) {
+        if (f < o.getF()) {
+            return -1;
+        } else if (f == o.getF()) {
+            return 0;
+        } else {
+            return 1;
+        }
     }
 }

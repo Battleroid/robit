@@ -5,14 +5,14 @@ import javafx.scene.transform.Scale;
 import java.util.ArrayList;
 
 public class Robot {
-    private double x, y;
+    private int x, y;
     private Shape shape;
 
     public Robot(Polygon shape) {
         this.shape = shape;
     }
 
-    public Robot(double x, double y, Shape shape) {
+    public Robot(int x, int y, Shape shape) {
         this.x = x;
         this.y = y;
         this.shape = shape;
@@ -24,11 +24,11 @@ public class Robot {
         resetScale();
     }
 
-    public double getX() {
+    public int getX() {
         return this.x;
     }
 
-    public double getY() {
+    public int getY() {
         return this.y;
     }
 
@@ -42,7 +42,7 @@ public class Robot {
         shape.setTranslateY(y);
     }
 
-    public void setXY(double x, double y) {
+    public void setXY(int x, int y) {
         this.x = x;
         this.y = y;
         shape.setTranslateX(x);
@@ -69,8 +69,8 @@ public class Robot {
 
     public boolean collides(AStar.AStarSimple.Direction direction, ArrayList<Polygon> polygons) {
         // get before coordinates
-        double bx = x;
-        double by = y;
+        int bx = x;
+        int by = y;
 
         // do temporary move in direction
         moveX(direction.dx);
