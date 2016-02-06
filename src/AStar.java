@@ -33,13 +33,19 @@ public class AStar extends Application {
         // controls
         ToolBar tb = new ToolBar();
         Button newSceneBtn = new Button("New Scenario");
+        Button tglShape = new Button("Toggle Shape");
         Label robotSizeLbl = new Label("Robot Size:");
         Button incRobotSize = new Button("Inc");
         Button decRobotSize = new Button("Dec");
-        Button tglShape = new Button("Toggle Shape");
+        Label stepSizeLbl = new Label("Step Size:");
+        Button incStepSize = new Button("Inc");
+        Button decStepSize = new Button("Dec");
 
         // add
-        tb.getItems().addAll(newSceneBtn, tglShape, robotSizeLbl, incRobotSize, decRobotSize);
+        tb.getItems().addAll(
+                newSceneBtn, tglShape, robotSizeLbl, incRobotSize, decRobotSize,
+                stepSizeLbl, incStepSize, decStepSize
+        );
 
         // a star
         StackPane sp = new StackPane();
@@ -67,6 +73,8 @@ public class AStar extends Application {
             as.toggleShape();
             as.cleanup();
         });
+        incStepSize.setOnAction(e -> as.incStepSize(1));
+        decStepSize.setOnAction(e -> as.decStepSize(1));
 
         // scene & stage
         final Scene scene = new Scene(sp, initialW, initialH);
@@ -88,12 +96,6 @@ public class AStar extends Application {
             @Override
             public void handle(KeyEvent event) {
                 switch (event.getCode()) {
-                    case A: as.robot.moveX(-1); break;
-                    case D: as.robot.moveX(1); break;
-                    case W: as.robot.moveY(-1); break;
-                    case S: as.robot.moveY(1); break;
-                    case Q: as.robot.setScale(3); break;
-                    case E: as.robot.resetScale(); break;
                     case P: as.solve(); break;
                 }
             }
@@ -109,6 +111,7 @@ public class AStar extends Application {
         // misc
         public double robotSize = 1;
         public int shapeChoice = 0;
+        public int stepSize = 5;
 
         // obstacles
         public ArrayList<Polygon> obstacles = new ArrayList<>();
@@ -116,14 +119,14 @@ public class AStar extends Application {
         // Directions for delta x,y when checking neighbors
         public enum Direction {
 
-            TOPLEFT(-5, -5),
-            TOPRIGHT(5, -5),
-            BOTTOMLEFT(-5, 5),
-            BOTTOMRIGHT(5, 5),
-            LEFT(-5, 0),
-            RIGHT(5, 0),
-            UP(0, -5),
-            DOWN(0, 5);
+            TOPLEFT(-1, -1),
+            TOPRIGHT(1, -1),
+            BOTTOMLEFT(-1, 1),
+            BOTTOMRIGHT(1, 1),
+            LEFT(-1, 0),
+            RIGHT(1, 0),
+            UP(0, -1),
+            DOWN(0, 1);
 
             public final int dx;
             public final int dy;
@@ -152,6 +155,16 @@ public class AStar extends Application {
         public void decRobotSize(double step) {
             robotSize -= step > 0 && (robotSize - step) >= 1 ? step : 0;
             robot.setScale(robotSize);
+        }
+
+        public void incStepSize(int step) {
+            stepSize += (stepSize + step) <= 10 ? step : 0;
+            System.out.println(stepSize);
+        }
+
+        public void decStepSize(int step) {
+            stepSize -= step > 0 && (stepSize - step) >= 2 ? step : 0;
+            System.out.println(stepSize);
         }
 
         // TODO: transition shape definitions to Robot class
@@ -343,14 +356,16 @@ public class AStar extends Application {
 
                 // TODO: toggle so you can switch on 'generous' detection of goal (using robot shape)
                 //  if (current.equals(goal) || robot.getShape().contains(goal.getPoint2D()) || robot.hit(goal.getShape())) {
-                if (current.equals(goal) || robot.getShape().contains(goal.getPoint2D()) || intersecting(current.getShape(), goal.getShape())) {
+                if (current.equals(goal) || robot.getShape().contains(goal.getPoint2D())
+                        || intersecting(current.getShape(), goal.getShape())
+                        || robot.hit(goal.getShape())) {
                     goal.setParent(current);
                     regurgitate(goal);
                     return;
                 }
 
                 for (Direction d : Direction.values()) {
-                    SNode n = new SNode(robot.getX() + d.dx, robot.getY() + d.dy);
+                    SNode n = new SNode(robot.getX() + (stepSize * d.dx), robot.getY() + (stepSize * d.dy));
                     if (closed.contains(n) || robot.collides(d, obstacles)) continue;
 
                     // create tentative G
@@ -368,9 +383,9 @@ public class AStar extends Application {
                     n.setParent(current);
                     n.setG(tempG);
                     n.setF(n.getG() + tempH);
+                    Shape nShape = n.getShape();
 
-                    // add to stage
-                    getChildren().add(n.getShape());
+                    getChildren().add(nShape);
                 }
             }
         }
