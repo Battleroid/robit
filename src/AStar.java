@@ -1,3 +1,5 @@
+import javafx.animation.PathTransition;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -9,11 +11,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Polygon;
-import javafx.scene.shape.Polyline;
-import javafx.scene.shape.Shape;
+import javafx.scene.shape.*;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import jdk.internal.org.xml.sax.SAXNotRecognizedException;
 
 import java.lang.reflect.Array;
@@ -117,7 +117,6 @@ public class AStar extends Application {
             UP(0, -5),
             DOWN(0, 5);
 
-            private static final int step = 5;
             public final int dx;
             public final int dy;
 
@@ -334,6 +333,9 @@ public class AStar extends Application {
 
         public void regurgitate(SNode n) {
             Polyline line = new Polyline();
+            Path path = new Path();
+            path.getElements().add(new MoveTo(goal.getX(), goal.getY()));
+            path.getElements().add(new LineTo(n.getX(), n.getY()));
 
             line.getPoints().addAll(
                     Double.valueOf(n.getX()), Double.valueOf(n.getY())
@@ -343,11 +345,21 @@ public class AStar extends Application {
                 line.getPoints().addAll(
                         Double.valueOf(n.getX()), Double.valueOf(n.getY())
                 );
+                path.getElements().add(new LineTo(n.getX(), n.getY()));
             }
 
             line.setStrokeWidth(5);
             line.setStroke(Color.RED);
             getChildren().add(line);
+
+            final PathTransition pathtransition = new PathTransition();
+            pathtransition.setDuration(Duration.seconds(10));
+            pathtransition.setDelay(Duration.seconds(0.5));
+            pathtransition.setPath(path);
+            pathtransition.setNode(robot.getShape());
+            pathtransition.setCycleCount(Timeline.INDEFINITE);
+            pathtransition.setAutoReverse(true);
+            pathtransition.play();
         }
     }
 }
