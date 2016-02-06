@@ -36,7 +36,7 @@ public class AStar extends Application {
         HBox hbox = new HBox(10);
         hbox.setPadding(new Insets(10));
         hbox.setStyle("-fx-background-color: #ddd;");
-        borderPane.setTop(hbox);
+        borderPane.setBottom(hbox);
 
         // controls
         Button newSceneBtn = new Button("New Scenario");
@@ -111,11 +111,13 @@ public class AStar extends Application {
 
         // Directions for delta x,y when checking neighbors
         public enum Direction {
-            LEFT(-10, 0),
-            RIGHT(10, 0),
-            UP(0, -10),
-            DOWN(0, 10);
 
+            LEFT(-5, 0),
+            RIGHT(5, 0),
+            UP(0, -5),
+            DOWN(0, 5);
+
+            private static final int step = 5;
             public final int dx;
             public final int dy;
 
@@ -264,7 +266,7 @@ public class AStar extends Application {
 
             // spawn all required entities for a new scenario
             spawnSGSNodes();
-            spawnObstacles(3);
+            spawnObstacles(5);
             spawnRobot();
         }
 
@@ -291,6 +293,8 @@ public class AStar extends Application {
 
                 if (current.equals(goal) || robot.getShape().contains(goal.getPoint2D()) || robot.hit(goal.getShape())) {
                     System.out.println("WE FOUND IT");
+                    goal.setParent(current);
+                    regurgitate(goal);
                     return;
                 }
 
@@ -299,7 +303,7 @@ public class AStar extends Application {
                     if (closed.contains(n) || robot.collides(d, obstacles)) continue;
                     System.out.println("FROM " + current + " TO " + n);
 
-                    double tempG = current.getG() + SNode.defaultCost + SNode.distanceTo(current, n);
+                    double tempG = current.getG() + SNode.distanceTo(current, n);
 
                     if (!open.contains(n)) {
                         open.add(n);
@@ -330,8 +334,20 @@ public class AStar extends Application {
 
         public void regurgitate(SNode n) {
             Polyline line = new Polyline();
+
+            line.getPoints().addAll(
+                    Double.valueOf(n.getX()), Double.valueOf(n.getY())
+            );
             while (n.getParent() != null) {
+                n = n.getParent();
+                line.getPoints().addAll(
+                        Double.valueOf(n.getX()), Double.valueOf(n.getY())
+                );
             }
+
+            line.setStrokeWidth(5);
+            line.setStroke(Color.RED);
+            getChildren().add(line);
         }
     }
 }
