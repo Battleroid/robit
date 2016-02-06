@@ -1,6 +1,7 @@
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
@@ -12,6 +13,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
+import jdk.internal.org.xml.sax.SAXNotRecognizedException;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -91,6 +93,7 @@ public class AStar extends Application {
                     case Q: as.robot.setScale(3); break;
                     case E: as.robot.resetScale(); break;
                     case F: as.collisionCheck(); break;
+                    case P: as.solve(); break;
                 }
             }
         });
@@ -107,15 +110,15 @@ public class AStar extends Application {
 
         // Directions for delta x,y when checking neighbors
         public enum Direction {
-            LEFT(-1, 0),
-            RIGHT(1, 0),
-            UP(0, -1),
-            DOWN(0, 1);
+            LEFT(-10, 0),
+            RIGHT(10, 0),
+            UP(0, -10),
+            DOWN(0, 10);
 
-            public final double dx;
-            public final double dy;
+            public final int dx;
+            public final int dy;
 
-            Direction(double dx, double dy) {
+            Direction(int dx, int dy) {
                 this.dx = dx;
                 this.dy = dy;
             }
@@ -272,8 +275,60 @@ public class AStar extends Application {
 
         public void solve() {
             // our open & closed lists
-            PriorityQueue<SNode> open = new PriorityQueue<>();
-            HashSet<SNode> closed = new HashSet<>();
+            PriorityQueue<SNode> open = new PriorityQueue<>(new SNodeComparator());
+            ArrayList<SNode> closed = new ArrayList<>();
+
+            start.setG(0);
+            start.setF(SNode.distanceTo(start, goal));
+
+            open.add(start);
+
+            while (!open.isEmpty()) {
+                SNode current = open.poll();
+                closed.add(current);
+                robot.setXY(current.getX(), current.getY());
+
+                if (current.equals(goal) || robot.getShape().contains(goal.getPoint2D()) || robot.hit(goal.getShape())) {
+                    System.out.println("WE FOUND IT");
+                    return;
+                }
+
+                for (Direction d : Direction.values()) {
+                    SNode n = new SNode(robot.getX() + d.dx, robot.getY() + d.dy);
+                    if (closed.contains(n) || robot.collides(d, obstacles)) continue;
+                    System.out.println("FROM " + current + " TO " + n);
+
+                    double tempG = current.getG() + SNode.defaultCost + SNode.distanceTo(current, n);
+
+                    if (!open.contains(n)) {
+                        open.add(n);
+                    } else if (tempG >= n.getG()) {
+                        continue;
+                    }
+
+                    n.setParent(current);
+                    n.setG(tempG);
+                    n.setF(n.getG() + SNode.distanceTo(n, goal));
+                    getChildren().add(n.getShape());
+                }
+            }
+        }
+
+        public ArrayList<SNode> getNeighbors(SNode n) {
+            ArrayList<SNode> neighbors = new ArrayList<>();
+            for (Direction d : Direction.values()) {
+                SNode neighbor = new SNode(robot.getX() + d.dx, robot.getY() + d.dy);
+                if (robot.collides(d, obstacles)) {
+                    neighbor.setObstacle(true);
+                    System.out.println("Collides " + neighbor);
+                }
+                neighbors.add(neighbor);
+            }
+            return neighbors;
+        }
+
+        public void regurgitate(SNode n) {
+            // create polyline from path and add to scene, make sure to draw line from last node to goal just to be sure
         }
     }
 }
