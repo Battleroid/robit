@@ -57,7 +57,7 @@ public class AStar extends Application {
 
         // add
         hbox.getChildren().addAll(newSceneBtn, replaySceneBtn, robotSizeLbl,
-                incRobotSize, decRobotSize, obstacleSizeLbl, incObstacleSize, decObstacleSize,
+                incRobotSize, decRobotSize, obstacleSizeLbl,
                 robotShapeLbl, rbCircle, rbTriangle
         );
 
@@ -70,8 +70,6 @@ public class AStar extends Application {
         replaySceneBtn.setOnAction(e -> as.replayScenario());
         incRobotSize.setOnAction(e -> as.incRobotSize(0.25));
         decRobotSize.setOnAction(e -> as.decRobotSize(0.25));
-        incObstacleSize.setOnAction(e -> as.incObstacleSize(0.25));
-        decObstacleSize.setOnAction(e -> as.decObstacleSize(0.25));
         rbCircle.setOnAction(e -> as.changeShape(0));
         rbTriangle.setOnAction(e -> as.changeShape(1));
 
@@ -104,7 +102,6 @@ public class AStar extends Application {
         public SNode start;
         public SNode goal;
         public double robotSize = 1;
-        public double obstacleSize = 1;
         public Robot robot;
         public int shapeChoice = 0;
         public ArrayList<Polygon> obstacles = new ArrayList<>();
@@ -112,6 +109,10 @@ public class AStar extends Application {
         // Directions for delta x,y when checking neighbors
         public enum Direction {
 
+            TOPLEFT(-5, -5),
+            TOPRIGHT(5, -5),
+            BOTTOMLEFT(-5, 5),
+            BOTTOMRIGHT(5, 5),
             LEFT(-5, 0),
             RIGHT(5, 0),
             UP(0, -5),
@@ -135,15 +136,6 @@ public class AStar extends Application {
         public void decRobotSize(double step) {
             robotSize -= step > 0 && (robotSize - step) >= 1 ? step : 0;
             robot.setScale(robotSize);
-        }
-
-        // TODO: implement scaling for obstacles
-        public void incObstacleSize(double step) {
-            this.obstacleSize += step > 0 ? step : 1;
-        }
-
-        public void decObstacleSize(double step) {
-            this.obstacleSize -= step > 0 && obstacleSize > 10 ? step : 0;
         }
 
         // TODO: transition shape definitions to Robot class
@@ -312,23 +304,12 @@ public class AStar extends Application {
 
                     n.setParent(current);
                     n.setG(tempG);
-                    n.setF(n.getG() + SNode.distanceTo(n, goal));
+                    double tempH = SNode.distanceTo(n, goal) * (1.0 + (1.0 / 1000.0)); // tie breaking?
+                    // n.setF(n.getG() + SNode.distanceTo(n, goal));
+                    n.setF(n.getG() + tempH);
                     getChildren().add(n.getShape());
                 }
             }
-        }
-
-        public ArrayList<SNode> getNeighbors(SNode n) {
-            ArrayList<SNode> neighbors = new ArrayList<>();
-            for (Direction d : Direction.values()) {
-                SNode neighbor = new SNode(robot.getX() + d.dx, robot.getY() + d.dy);
-                if (robot.collides(d, obstacles)) {
-                    neighbor.setObstacle(true);
-                    System.out.println("Collides " + neighbor);
-                }
-                neighbors.add(neighbor);
-            }
-            return neighbors;
         }
 
         public void regurgitate(SNode n) {
@@ -350,6 +331,8 @@ public class AStar extends Application {
 
             line.setStrokeWidth(5);
             line.setStroke(Color.RED);
+            line.toFront();
+            line.setStrokeLineCap(StrokeLineCap.ROUND);
             getChildren().add(line);
 
             final PathTransition pathtransition = new PathTransition();
@@ -357,6 +340,7 @@ public class AStar extends Application {
             pathtransition.setDelay(Duration.seconds(0.5));
             pathtransition.setPath(path);
             pathtransition.setNode(robot.getShape());
+            robot.getShape().toFront();
             pathtransition.setCycleCount(Timeline.INDEFINITE);
             pathtransition.setAutoReverse(true);
             pathtransition.play();

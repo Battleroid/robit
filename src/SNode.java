@@ -4,14 +4,15 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
 
 public class SNode implements Comparable<SNode> {
-    public static final double defaultCost = 10.0;
+    public static final double d = 10.0;
+    public static final double d2 = 14.0;
     public static final double defaultSize = 2.0;
     private final int x, y;
     private double f, h;
-    private double g = defaultCost;
+    private double g = d;
     private SNode parent = null;
     private boolean obstacle = false;
-    private Color color = Color.BLUE;
+    private Color color = Color.LIGHTBLUE;
     private Point2D pt;
 
     public SNode(int x, int y) {
@@ -48,13 +49,9 @@ public class SNode implements Comparable<SNode> {
     }
 
     static public double distanceTo(SNode f, SNode t) {
-        return Math.abs(f.getX() - t.getX()) + Math.abs(f.getY() - t.getY());
-    }
-
-    static public double distanceToAlt(SNode f, SNode t) {
-        double x = f.getX() - t.getX();
-        double y = f.getY() - t.getY();
-        return x * x + y * y;
+        double dx = Math.abs(f.x - t.x);
+        double dy = Math.abs(f.y-  t.y);
+        return d * (dx + dy) + (d2 - 2 * d) * Math.min(dx, dy);
     }
 
     public double distanceTo(SNode snode) {
@@ -73,7 +70,7 @@ public class SNode implements Comparable<SNode> {
     public void setF(SNode previous, SNode goal) {
         this.parent = previous;
         h = distanceTo(goal);
-        g = previous.getG() + defaultCost;
+        g = previous.getG() + d;
         f = g + h;
     }
 
