@@ -121,11 +121,15 @@ public class SNode implements Comparable<SNode> {
     }
 
     public Circle getShape() {
-        return new Circle(x, y, defaultSize, color);
+        Circle c = new Circle(x, y, defaultSize, color);
+        c.toBack();
+        return c;
     }
 
     public Circle getShape(double size) {
-        return new Circle(x, y, size, color);
+        Circle c = new Circle(x, y, size, color);
+        c.toBack();
+        return c;
     }
 
     public boolean containedBy(Shape p) {

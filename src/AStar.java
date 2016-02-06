@@ -2,22 +2,23 @@ import javafx.animation.PathTransition;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ToolBar;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import jdk.internal.org.xml.sax.SAXNotRecognizedException;
 
-import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.PriorityQueue;
+import java.util.Random;
 
 public class AStar extends Application {
     public static void main(String[] args) {
@@ -26,59 +27,61 @@ public class AStar extends Application {
 
     @Override
     public void start(Stage stage) {
-        int maxW = 720;
-        int maxH = 480;
-
-        // layouts
-        BorderPane borderPane = new BorderPane();
-        borderPane.setMaxHeight(maxH);
-        borderPane.setMaxWidth(maxW);
-        HBox hbox = new HBox(10);
-        hbox.setPadding(new Insets(10));
-        hbox.setStyle("-fx-background-color: #ddd;");
-        borderPane.setBottom(hbox);
+        int initialW = 720;
+        int initialH = 480;
 
         // controls
+        ToolBar tb = new ToolBar();
         Button newSceneBtn = new Button("New Scenario");
-        Button replaySceneBtn = new Button("Replay Scenario");
         Label robotSizeLbl = new Label("Robot Size:");
-        Button incRobotSize = new Button("+");
-        Button decRobotSize = new Button("-");
-        Label obstacleSizeLbl = new Label("Obstacle size:");
-        Button incObstacleSize = new Button("+");
-        Button decObstacleSize = new Button("-");
-        final ToggleGroup shapeGroup = new ToggleGroup();
-        Label robotShapeLbl = new Label("Robot Shape:");
-        RadioButton rbCircle = new RadioButton("Circle");
-        RadioButton rbTriangle = new RadioButton("Triangle");
-        rbCircle.setToggleGroup(shapeGroup);
-        rbTriangle.setToggleGroup(shapeGroup);
-        rbCircle.setSelected(true);
+        Button incRobotSize = new Button("Inc");
+        Button decRobotSize = new Button("Dec");
+        Button tglShape = new Button("Toggle Shape");
 
         // add
-        hbox.getChildren().addAll(newSceneBtn, replaySceneBtn, robotSizeLbl,
-                incRobotSize, decRobotSize, obstacleSizeLbl,
-                robotShapeLbl, rbCircle, rbTriangle
-        );
+        tb.getItems().addAll(newSceneBtn, tglShape, robotSizeLbl, incRobotSize, decRobotSize);
 
         // a star
+        StackPane sp = new StackPane();
+        sp.setPrefWidth(initialW);
+        sp.setPrefHeight(initialH);
+        sp.minHeight(initialH);
+        sp.minWidth(initialW);
         AStarSimple as = new AStarSimple();
-        borderPane.setCenter(as);
+        sp.getChildren().add(as);
+        BorderPane tbPane = new BorderPane();
+        tbPane.setTop(tb);
+        sp.getChildren().add(tbPane);
 
-        // buttons
+        // buttons & actions
         newSceneBtn.setOnAction(e -> as.newScenario());
-        replaySceneBtn.setOnAction(e -> as.replayScenario());
-        incRobotSize.setOnAction(e -> as.incRobotSize(0.25));
-        decRobotSize.setOnAction(e -> as.decRobotSize(0.25));
-        rbCircle.setOnAction(e -> as.changeShape(0));
-        rbTriangle.setOnAction(e -> as.changeShape(1));
+        incRobotSize.setOnAction(e -> {
+            as.incRobotSize(0.25);
+            as.cleanup();
+        });
+        decRobotSize.setOnAction(e -> {
+            as.decRobotSize(0.25);
+            as.cleanup();
+        });
+        tglShape.setOnMousePressed(e -> {
+            as.toggleShape();
+            as.cleanup();
+        });
 
         // scene & stage
-        final Scene scene = new Scene(borderPane, maxW, maxH);
+        final Scene scene = new Scene(sp, initialW, initialH);
         stage.setTitle("A* Pathfinding");
         stage.setScene(scene);
-        stage.setResizable(false);
+        stage.setResizable(true);
         stage.show();
+
+        // listeners
+        scene.widthProperty().addListener(l -> {
+            as.cleanup();
+        });
+        scene.heightProperty().addListener(l -> {
+            as.cleanup();
+        });
 
         // sample key usage, remove when done testing
         scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
@@ -91,7 +94,6 @@ public class AStar extends Application {
                     case S: as.robot.moveY(1); break;
                     case Q: as.robot.setScale(3); break;
                     case E: as.robot.resetScale(); break;
-                    case F: as.collisionCheck(); break;
                     case P: as.solve(); break;
                 }
             }
@@ -99,11 +101,16 @@ public class AStar extends Application {
     }
 
     static class AStarSimple extends Pane {
+        // objs
         public SNode start;
         public SNode goal;
-        public double robotSize = 1;
         public Robot robot;
+
+        // misc
+        public double robotSize = 1;
         public int shapeChoice = 0;
+
+        // obstacles
         public ArrayList<Polygon> obstacles = new ArrayList<>();
 
         // Directions for delta x,y when checking neighbors
@@ -129,8 +136,17 @@ public class AStar extends Application {
 
         // TODO: When changing size check if you collide, if you do DO NOT increment
         public void incRobotSize(double step) {
+            double before = robotSize;
             robotSize += step > 0 ? step : 1;
             robot.setScale(robotSize);
+
+            // depracated; screen is cleared for any change whatsoever, better to be safe than sorry though
+            for (Polygon o : obstacles) {
+                if (intersecting(robot.getShape(), o)) {
+                    robotSize = before;
+                    robot.setScale(before);
+                }
+            }
         }
 
         public void decRobotSize(double step) {
@@ -140,22 +156,23 @@ public class AStar extends Application {
 
         // TODO: transition shape definitions to Robot class
         // Equilateral triangle default
-        public Shape EquilateralTriangle() {
+        public Polygon EquilateralTriangle() {
             return EquilateralTriangle(20);
         }
 
         // Equilateral triangle
-        public Shape EquilateralTriangle(double scale) {
+        public Polygon EquilateralTriangle(double scale) {
             if (scale <= 10) scale = 10;
+            double w = scale;
+            double h = scale;
             double[] points = {
-                    0.5 * scale, 0,
-                    0, 0.866 * scale,
-                    scale, 0.866 * scale
+                    -0.866 * scale, scale,
+                    0, -0.5 * scale,
+                    0.866 * scale, scale
             };
-            Shape triangle = new Polygon(points);
-            triangle.setStroke(Color.BLACK);
-            triangle.setStrokeWidth(1);
-            triangle.setFill(Color.AQUA);
+            Polygon triangle = new Polygon(points);
+            triangle.setFill(Color.VIOLET);
+            triangle.toBack();
             return triangle;
         }
 
@@ -167,12 +184,9 @@ public class AStar extends Application {
         // Basic circle
         public Shape BasicCircle(double radius) {
             if (radius <= 10) radius = 10;
-            double x = radius;
-            double y = radius;
-            Circle circle = new Circle(radius, x, y);
-            circle.setStroke(Color.BLACK);
-            circle.setStrokeWidth(1);
-            circle.setFill(Color.AQUA);
+            Circle circle = new Circle(radius);
+            circle.setFill(Color.VIOLET);
+            circle.toBack();
             return circle;
         }
 
@@ -180,6 +194,14 @@ public class AStar extends Application {
             @Override
             public int compare(SNode a, SNode b) {
                 return Double.compare(a.getF(), b.getF());
+            }
+        }
+
+        public void toggleShape() {
+            if (shapeChoice == 0) {
+                changeShape(1);
+            } else {
+                changeShape(0);
             }
         }
 
@@ -203,8 +225,9 @@ public class AStar extends Application {
         // constructors and steps for creating pane
         public AStarSimple() {}
 
-        public void collisionCheck() {
-            System.out.println(robot.collides(Direction.RIGHT, obstacles));
+        public boolean intersecting(Shape a, Shape b) {
+            Shape i = Shape.intersect(a, b);
+            return i.getBoundsInLocal().getHeight() != -1;
         }
 
         public void spawnRobot() {
@@ -222,15 +245,46 @@ public class AStar extends Application {
             int cx = (int) getWidth() / 2;
             int cy = (int) getHeight() / 2;
             Random rng = new Random();
+
             for (int i = 0; i < n; ++i) {
+
+                // create bounds for obstacles
                 int cxl = cx / 2; // left
                 int cxr = cx + cxl; // right
                 int cyt = cy / 2; // top
                 int cyb = cy + cyt; // bottom
+
+                // create coordinates and scale value for polygon
                 int x = cxl + rng.nextInt((cxr - cxl) - 1);
                 int y = cyt + rng.nextInt((cyb - cyt) - 1);
                 int scale = 5 + rng.nextInt(7);
-                Polygon o = new Obstacles.Octagon(x, y, scale);
+                int deg = rng.nextInt(360);
+                Color c = new Color(
+                        (Math.random() * 255) / 255.0,
+                        (Math.random() * 255) / 255.0,
+                        (Math.random() * 255) / 255.0,
+                        1.0
+                );
+
+                // until I replace it with reflection, this'll work
+                Polygon[] pool = new Polygon[] {
+                        new Obstacles.Octagon(x, y, scale),
+                        new Obstacles.Pentagon(x, y, scale)
+                };
+
+                // create polygon, check if touching start/end
+                Polygon o = pool[rng.nextInt(pool.length)];
+                o.setFill(c);
+                o.setRotate(deg);
+
+                // if the obstacle touches anything important we will try this iteration again
+                if (intersecting(o, start.getShape())
+                        || intersecting(o, goal.getShape())
+                        || intersecting(o, robot.getShape())) {
+                    i--;
+                    continue;
+                }
+
                 obstacles.add(o);
             }
 
@@ -252,22 +306,27 @@ public class AStar extends Application {
         }
 
         public void newScenario() {
-            // clear all shapes on the scene
+            // cleanup all shapes on the scene
             getChildren().clear();
 
             // spawn all required entities for a new scenario
             spawnSGSNodes();
+            spawnRobot();
             spawnObstacles(5);
+        }
+
+        public void cleanup() {
+            getChildren().clear();
+            obstacles.clear();
+            spawnSGSNodes();
             spawnRobot();
         }
 
-        // should restart the same scenario, used to solve again (e.g. replay), or to solve when swapping shapes
-        // TODO: Replay the scenario with updated (or not) parameters
-        public void replayScenario() {
-            // TODO: Replay solve for scenario. Restart solve altogether since this will be for when you change the robot shape
-        }
-
         public void solve() {
+            if (obstacles.size() == 0) {
+                return;
+            }
+
             // our open & closed lists
             PriorityQueue<SNode> open = new PriorityQueue<>(new SNodeComparator());
             ArrayList<SNode> closed = new ArrayList<>();
@@ -282,8 +341,9 @@ public class AStar extends Application {
                 closed.add(current);
                 robot.setXY(current.getX(), current.getY());
 
-                if (current.equals(goal) || robot.getShape().contains(goal.getPoint2D()) || robot.hit(goal.getShape())) {
-                    System.out.println("WE FOUND IT");
+                // TODO: toggle so you can switch on 'generous' detection of goal (using robot shape)
+                //  if (current.equals(goal) || robot.getShape().contains(goal.getPoint2D()) || robot.hit(goal.getShape())) {
+                if (current.equals(goal) || robot.getShape().contains(goal.getPoint2D()) || intersecting(current.getShape(), goal.getShape())) {
                     goal.setParent(current);
                     regurgitate(goal);
                     return;
@@ -292,35 +352,44 @@ public class AStar extends Application {
                 for (Direction d : Direction.values()) {
                     SNode n = new SNode(robot.getX() + d.dx, robot.getY() + d.dy);
                     if (closed.contains(n) || robot.collides(d, obstacles)) continue;
-                    System.out.println("FROM " + current + " TO " + n);
 
+                    // create tentative G
                     double tempG = current.getG() + SNode.distanceTo(current, n);
 
+                    // if not in open list then add
                     if (!open.contains(n)) {
                         open.add(n);
-                    } else if (tempG >= n.getG()) {
+                    } else if (tempG >= n.getG()) { // not a better path, forget it
                         continue;
                     }
 
+                    // set parent, F, G, and H score with supposed tie breaking
+                    double tempH = SNode.distanceTo(n, goal) * (1.0 + (1.0 / 1000.0)); // tie breaking
                     n.setParent(current);
                     n.setG(tempG);
-                    double tempH = SNode.distanceTo(n, goal) * (1.0 + (1.0 / 1000.0)); // tie breaking?
-                    // n.setF(n.getG() + SNode.distanceTo(n, goal));
                     n.setF(n.getG() + tempH);
+
+                    // add to stage
                     getChildren().add(n.getShape());
                 }
             }
         }
 
         public void regurgitate(SNode n) {
+            // Polyline for visualization, path for transition
             Polyline line = new Polyline();
             Path path = new Path();
+
+            // path, move to initial goal point and work backwards
             path.getElements().add(new MoveTo(goal.getX(), goal.getY()));
             path.getElements().add(new LineTo(n.getX(), n.getY()));
 
+            // line, same with path, start with end node and work backwards
             line.getPoints().addAll(
                     Double.valueOf(n.getX()), Double.valueOf(n.getY())
             );
+
+            // continue adding pieces of the path until we run into null parent (starting point)
             while (n.getParent() != null) {
                 n = n.getParent();
                 line.getPoints().addAll(
@@ -329,12 +398,14 @@ public class AStar extends Application {
                 path.getElements().add(new LineTo(n.getX(), n.getY()));
             }
 
-            line.setStrokeWidth(5);
+            // spiffy up our line
+            line.setStrokeWidth(4);
             line.setStroke(Color.RED);
             line.toFront();
             line.setStrokeLineCap(StrokeLineCap.ROUND);
             getChildren().add(line);
 
+            // create a basic looping transition of the path
             final PathTransition pathtransition = new PathTransition();
             pathtransition.setDuration(Duration.seconds(10));
             pathtransition.setDelay(Duration.seconds(0.5));
