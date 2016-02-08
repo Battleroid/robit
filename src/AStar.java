@@ -5,6 +5,7 @@ import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ToolBar;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
@@ -33,6 +34,7 @@ public class AStar extends Application {
         // controls
         ToolBar tb = new ToolBar();
         Button newSceneBtn = new Button("New Scenario");
+        Button solveBtn = new Button("Solve");
         Button tglShape = new Button("Toggle Shape");
         Label robotSizeLbl = new Label("Robot Size:");
         Button incRobotSize = new Button("Inc");
@@ -43,7 +45,7 @@ public class AStar extends Application {
 
         // add
         tb.getItems().addAll(
-                newSceneBtn, tglShape, robotSizeLbl, incRobotSize, decRobotSize,
+                newSceneBtn, solveBtn, tglShape, robotSizeLbl, incRobotSize, decRobotSize,
                 stepSizeLbl, incStepSize, decStepSize
         );
 
@@ -61,6 +63,7 @@ public class AStar extends Application {
 
         // buttons & actions
         newSceneBtn.setOnAction(e -> as.newScenario());
+        solveBtn.setOnAction(e -> as.solve());
         incRobotSize.setOnAction(e -> {
             as.incRobotSize(0.25);
             as.cleanup();
@@ -336,7 +339,7 @@ public class AStar extends Application {
         }
 
         public void solve() {
-            if (obstacles.size() == 0) {
+            if (obstacles.size() == 0 || robot == null) {
                 return;
             }
 
