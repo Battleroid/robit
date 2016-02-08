@@ -1,3 +1,9 @@
+*.aux
+*.out
+*.txt
+*.toc
+*.synctex
+*.out
 *.iml
 .idea/
 *.class

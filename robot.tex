@@ -1,0 +1,65 @@
+\documentclass[letter,11pt]{article}
+
+\usepackage{listings}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage[parfill]{parskip}
+\usepackage[linktocpage=true]{hyperref}
+\usepackage[margin=0.75in]{geometry}
+
+\renewcommand{\sectionbreak}{\clearpage}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+
+\lstset{
+	language=Java,
+	showspaces=false,
+	showstringspaces=false,
+	breaklines=true,
+	tabsize=2,
+	numbers=left,
+	frame=single,
+	breakatwhitespace=true,
+	basicstyle=\small,
+	aboveskip=1em
+}
+
+\begin{document}
+	\newgeometry{margin=2in}
+	
+	\title{A Star}
+	\author{Casey Weed}
+	\maketitle
+	
+	\tableofcontents
+	\thispagestyle{empty}
+	\pagebreak
+	
+	\restoregeometry
+	\setcounter{page}{1}
+	
+	\section{AStar}
+	
+	\textbf{AStar} is the primary pane and brings together the functions of Robot, SNode and utilizes the Obstacles for sample polygonal obstacles.
+	
+	Robot size, shape, and step size can be adjusted. However, the obstacle location, sizes, and orientation cannot be adjusted manually. Instead their properties are randomly assigned. In each iteration of the obstacles spawning process, the obstacle checks whether or not it collides with the start, goal, or robot shapes, if they do the current obstacle is scrapped and another attempt is made.
+	
+	\lstinputlisting{AStar.java}
+	
+	\section{SNode}
+	
+	\textbf{SNode} is a replacement for using raw $x$ \& $y$ coordinates. Instead it stores the coordinates, the default movement cost in the four cardinal directions ($d$), as well as the cost for moving diagonally ($d2$), the previous node and lastly the heuristic value ($h$).
+	
+	\lstinputlisting{SNode.java}
+	
+	\section{Robot}
+	
+	\textbf{Robot} is much like the \textbf{SNode} class. It stores a shape ($shape$) and the coordinates of the current location ($x$ \& $y$). Movement and scaling is also handled  by the class. Collision is also implemented; if the shape the robot is represented as collides with any specified polygons in a direction, or a single polygon without a movement direction.
+	
+	\lstinputlisting{Robot.java}
+	
+	\section{Obstacles}
+	
+	\textbf{Obstacles} is simply a collection of static polygons that can be scaled by an initial value. Since obstacles are typically not renewed, they feature no ability to rescale them after initialization.
+	
+	\lstinputlisting{Obstacles.java}
+\end{document}
