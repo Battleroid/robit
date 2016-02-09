@@ -19,7 +19,7 @@ public class SNode implements Comparable<SNode> {
         this.x = x;
         this.y = y;
         this.pt = new Point2D(x, y);
-        this.f = this.g = this.h = 0;
+        this.f = this.h = 0;
     }
 
     public SNode(Point2D pt) {
