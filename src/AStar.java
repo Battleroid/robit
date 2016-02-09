@@ -370,6 +370,13 @@ public class AStar extends Application {
                     // create tentative G
                     double tempG = current.getG() + SNode.distanceTo(current, n);
 
+                    // not entirely sure if necessary
+//                    if (open.contains(n) && n.getG() < tempG) {
+//                        open.remove(n);
+//                        closed.add(n);
+//                        continue;
+//                    }
+
                     // closed AND tentative G is greater than node G, or skip if obstacle in way
                     if ((closed.contains(n) && tempG >= n.getG()) || robot.collides(d, obstacles)) continue;
 
