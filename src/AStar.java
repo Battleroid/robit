@@ -5,7 +5,6 @@ import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ToolBar;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
@@ -140,7 +139,6 @@ public class AStar extends Application {
             }
         }
 
-        // TODO: When changing size check if you collide, if you do DO NOT increment
         public void incRobotSize(double step) {
             double before = robotSize;
             robotSize += step > 0 ? step : 1;
@@ -357,8 +355,6 @@ public class AStar extends Application {
                 closed.add(current);
                 robot.setXY(current.getX(), current.getY());
 
-                // TODO: toggle so you can switch on 'generous' detection of goal (using robot shape)
-                //  if (current.equals(goal) || robot.getShape().contains(goal.getPoint2D()) || robot.hit(goal.getShape())) {
                 if (current.equals(goal) || robot.getShape().contains(goal.getPoint2D())
                         || intersecting(current.getShape(), goal.getShape())
                         || robot.hit(goal.getShape())) {
@@ -369,26 +365,30 @@ public class AStar extends Application {
 
                 for (Direction d : Direction.values()) {
                     SNode n = new SNode(robot.getX() + (stepSize * d.dx), robot.getY() + (stepSize * d.dy));
-                    if (closed.contains(n) || robot.collides(d, obstacles)) continue;
+                    System.out.println(n);
 
                     // create tentative G
                     double tempG = current.getG() + SNode.distanceTo(current, n);
 
-                    // if not in open list then add
-                    if (!open.contains(n)) {
-                        open.add(n);
-                    } else if (tempG >= n.getG()) { // not a better path, forget it
-                        continue;
+                    // closed AND tentative G is greater than node G, or skip if obstacle in way
+                    if ((closed.contains(n) && tempG >= n.getG()) || robot.collides(d, obstacles)) continue;
+
+                    if (!open.contains(n) || tempG < n.getG()) {
+                        n.setParent(current);
+                        n.setG(tempG);
+                        double tempH = n.getG() + SNode.distanceTo(n, goal);
+                        tempH *= (1.0 + (1.0 / 10000.0)); // tie breaking
+                        n.setF(tempH);
+
+                        // shape junk
+                        Shape nShape = n.getShape();
+                        nShape.setFill(Color.LIGHTBLUE);
+
+                        if (!open.contains(n)) {
+                            open.add(n);
+                            getChildren().add(nShape);
+                        }
                     }
-
-                    // set parent, F, G, and H score with supposed tie breaking
-                    double tempH = SNode.distanceTo(n, goal) * (1.0 + (1.0 / 1000.0)); // tie breaking
-                    n.setParent(current);
-                    n.setG(tempG);
-                    n.setF(n.getG() + tempH);
-                    Shape nShape = n.getShape();
-
-                    getChildren().add(nShape);
                 }
             }
         }
