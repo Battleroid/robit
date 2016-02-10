@@ -49,13 +49,11 @@ public class Robot {
         shape.setTranslateY(y);
     }
 
-    // TODO: transforms need to be on origin (center), or in case of triangle possibly corner
     public void setScale(double size) {
         if (size >= 1) {
             Scale scale = new Scale(size, size);
             shape.getTransforms().clear();
             shape.getTransforms().add(scale);
-            // TODO: need to adjust for origin EVENTUALLY using middle point of bounding box
         }
     }
 
