@@ -84,6 +84,8 @@ public class AStar extends Application {
         stage.setTitle("A* Pathfinding");
         stage.setScene(scene);
         stage.setResizable(true);
+        stage.setMinHeight(initialH);
+        stage.setMaxHeight(initialW);
         stage.show();
 
         // listeners
@@ -140,13 +142,11 @@ public class AStar extends Application {
             }
         }
 
-        // TODO: When changing size check if you collide, if you do DO NOT increment
         public void incRobotSize(double step) {
             double before = robotSize;
-            robotSize += step > 0 ? step : 1;
+            robotSize += step > 0 && (robotSize + step) <= 7 ? step : 0;
             robot.setScale(robotSize);
 
-            // depracated; screen is cleared for any change whatsoever, better to be safe than sorry though
             for (Polygon o : obstacles) {
                 if (intersecting(robot.getShape(), o)) {
                     robotSize = before;
