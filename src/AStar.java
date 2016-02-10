@@ -84,7 +84,7 @@ public class AStar extends Application {
         stage.setScene(scene);
         stage.setResizable(true);
         stage.setMinHeight(initialH);
-        stage.setMaxHeight(initialW);
+        stage.setMinWidth(initialW);
         stage.show();
 
         // listeners
